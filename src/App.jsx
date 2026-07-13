@@ -49,7 +49,10 @@ function App() {
     if (saved?.splits?.length) {
       setSplits(saved.splits)
       setSelectedSplitId(saved.selectedSplitId || saved.splits[0].id)
-      setSessions(saved.sessions ?? [])
+      // Drop the old seeded sample session (fixed id 'session-001') that used to
+      // ship with every fresh install - real logged sessions always use a
+      // timestamp-based id, so this can never match a genuine user session.
+      setSessions((saved.sessions ?? []).filter((session) => session.id !== 'session-001'))
       setHasHydrated(true)
       return
     }

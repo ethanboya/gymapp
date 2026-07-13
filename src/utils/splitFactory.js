@@ -1,4 +1,4 @@
-import { BLOCK_TYPE, buildExerciseMap, createBlock, createSplit, samplePresets, sampleSessionHistory } from '../data/models'
+import { BLOCK_TYPE, buildExerciseMap, createBlock, createSplit, samplePresets } from '../data/models'
 
 export { buildExerciseMap }
 
@@ -27,6 +27,6 @@ export function createInitialAppState() {
   return {
     splits: [starterSplit, ...samplePresets],
     selectedSplitId: starterSplit.id,
-    sessions: sampleSessionHistory
+    sessions: []
   }
 }

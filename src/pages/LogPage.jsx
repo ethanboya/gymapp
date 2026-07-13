@@ -167,9 +167,10 @@ export function LogPage({ selectedSplit, sessions, setSessions, setSplits, isDar
         if (idx !== exerciseIndex) return entry
         return {
           ...entry,
-          sets: entry.sets.map((set, sIdx) =>
-            sIdx !== setIndex ? set : { ...set, [field]: field === 'weight' || field === 'reps' ? Number(value) : value }
-          )
+          // Keep the raw typed value here (not coerced to a Number) so a fresh
+          // field starts truly blank instead of showing "0" that has to be
+          // deleted before typing. Numeric fields get normalized at save time.
+          sets: entry.sets.map((set, sIdx) => (sIdx !== setIndex ? set : { ...set, [field]: value }))
         }
       })
     )
@@ -177,7 +178,7 @@ export function LogPage({ selectedSplit, sessions, setSessions, setSplits, isDar
 
   const addSet = (exerciseIndex) => {
     setLogEntries((current) =>
-      current.map((entry, idx) => (idx !== exerciseIndex ? entry : { ...entry, sets: [...entry.sets, { weight: 0, reps: 0, notes: '' }] }))
+      current.map((entry, idx) => (idx !== exerciseIndex ? entry : { ...entry, sets: [...entry.sets, { weight: '', reps: '', notes: '' }] }))
     )
   }
 
@@ -197,7 +198,7 @@ export function LogPage({ selectedSplit, sessions, setSessions, setSplits, isDar
       timestamp: new Date().toISOString(),
       exerciseLogs: logEntries.map((entry) => ({
         exerciseId: entry.exerciseId,
-        sets: entry.sets.map((set) => ({ ...set }))
+        sets: entry.sets.map((set) => ({ ...set, weight: Number(set.weight) || 0, reps: Number(set.reps) || 0 }))
       }))
     })
 
@@ -312,7 +313,6 @@ export function LogPage({ selectedSplit, sessions, setSessions, setSplits, isDar
             const previous = getLastSessionSummary(entry.exerciseId)
             const currentBest = getBestSet(entry.sets)
             const beat = previous && (currentBest.weight > previous.weight || (currentBest.weight === previous.weight && currentBest.reps > previous.reps))
-            const miss = previous && entry.sets.length > 0 && !beat
             const setPrStatuses = entry.sets.map((set) => getSetPrStatus(entry.exerciseId, set))
             const hasNewPr = setPrStatuses.some((status) => status.isWeightPr || status.isE1rmPr)
 
@@ -336,19 +336,11 @@ export function LogPage({ selectedSplit, sessions, setSessions, setSplits, isDar
                         🏆 New PR
                       </span>
                     )}
-                    {previous ? (
-                      <span
-                        className={`inline-flex rounded-full px-3 py-1 text-xs uppercase tracking-[0.2em] ${
-                          beat
-                            ? `bg-emerald-500/15 ${isDarkTheme ? 'text-emerald-200' : 'text-emerald-700'}`
-                            : miss
-                            ? `bg-red-500/15 ${isDarkTheme ? 'text-red-200' : 'text-red-700'}`
-                            : pillNeutralClass
-                        }`}
-                      >
-                        {beat ? 'Beat previous' : miss ? 'Missed previous' : 'No progress yet'}
+                    {beat && (
+                      <span className={`inline-flex rounded-full px-3 py-1 text-xs uppercase tracking-[0.2em] bg-emerald-500/15 ${isDarkTheme ? 'text-emerald-200' : 'text-emerald-700'}`}>
+                        Beat previous
                       </span>
-                    ) : null}
+                    )}
                   </div>
                 </div>
 

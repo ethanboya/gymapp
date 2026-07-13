@@ -208,32 +208,6 @@ export const createSession = ({ id, splitId, blockId, timestamp, exerciseLogs = 
   exerciseLogs
 })
 
-export const sampleSessionHistory = [
-  createSession({
-    id: 'session-001',
-    splitId: 'push-pull-legs-rest',
-    blockId: 'push',
-    timestamp: '2026-06-30T18:30:00.000Z',
-    exerciseLogs: [
-      {
-        exerciseId: 'bench-press',
-        sets: [
-          createSetEntry({ weight: 185, reps: 8 }),
-          createSetEntry({ weight: 185, reps: 8 }),
-          createSetEntry({ weight: 185, reps: 7 })
-        ]
-      },
-      {
-        exerciseId: 'dumbbell-shoulder-press',
-        sets: [
-          createSetEntry({ weight: 95, reps: 6 }),
-          createSetEntry({ weight: 95, reps: 6 })
-        ]
-      }
-    ]
-  })
-]
-
 export const buildExerciseMap = (exerciseIds) => {
   return exerciseIds.reduce((map, id) => {
     const exercise = exerciseList.find((item) => item.id === id)
