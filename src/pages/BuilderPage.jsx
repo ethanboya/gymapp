@@ -1,18 +1,18 @@
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { BLOCK_TYPE, exerciseList } from '../data/models'
+import { BLOCK_TYPE } from '../data/models'
+import { addCustomExerciseToBlock } from '../utils/splitExercises'
 import { buildExerciseMap, createNewBlock, createNewCustomSplit } from '../utils/splitFactory'
-import { getExerciseById, groupExercisesByMuscle } from '../utils/exerciseLookup'
+import { getExerciseById } from '../utils/exerciseLookup'
 import { getThemeClasses } from '../utils/theme'
 import { ExerciseInfoButton } from '../components/ExerciseInfoButton'
+import { ExerciseSearchPicker } from '../components/ExerciseSearchPicker'
 
 export function BuilderPage({ setSplits, setSelectedSplitId, isDarkTheme }) {
   const navigate = useNavigate()
   const { panelClass, nestedCardClass, mutedTextClass, inputClass, buttonSecondaryClass, buttonAccentClass, buttonDangerClass } = getThemeClasses(isDarkTheme)
-  const groupedExerciseList = useMemo(() => groupExercisesByMuscle(exerciseList), [])
 
   const [builder, setBuilder] = useState(() => createNewCustomSplit())
-  const [newExerciseId, setNewExerciseId] = useState(exerciseList[0]?.id || '')
 
   const updateBlock = (index, updates) => {
     setBuilder((current) => ({
@@ -21,8 +21,7 @@ export function BuilderPage({ setSplits, setSelectedSplitId, isDarkTheme }) {
     }))
   }
 
-  const addExerciseToBlock = (blockIndex) => {
-    const exerciseId = newExerciseId
+  const addExerciseToBlock = (blockIndex, exerciseId) => {
     if (!exerciseId) return
     setBuilder((current) => ({
       ...current,
@@ -32,6 +31,10 @@ export function BuilderPage({ setSplits, setSelectedSplitId, isDarkTheme }) {
           : block
       )
     }))
+  }
+
+  const createCustomExerciseInBlock = (blockIndex, name) => {
+    setBuilder((current) => addCustomExerciseToBlock(current, blockIndex, name))
   }
 
   const removeExerciseFromBlock = (blockIndex, exerciseId) => {
@@ -181,35 +184,20 @@ export function BuilderPage({ setSplits, setSelectedSplitId, isDarkTheme }) {
 
             {block.type === BLOCK_TYPE.WORKOUT && (
               <div className="space-y-4">
-                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                  <label className={`block text-sm ${mutedTextClass}`}>
-                    Add exercise
-                    <select
-                      value={newExerciseId}
-                      onChange={(event) => setNewExerciseId(event.target.value)}
-                      className={`mt-2 w-full rounded-2xl border px-4 py-2 outline-none transition ${inputClass}`}
-                    >
-                      {groupedExerciseList.map((group) => (
-                        <optgroup key={group.muscleGroup} label={group.muscleGroup}>
-                          {group.exercises.map((exercise) => (
-                            <option key={exercise.id} value={exercise.id}>
-                              {exercise.name}
-                            </option>
-                          ))}
-                        </optgroup>
-                      ))}
-                    </select>
-                  </label>
-                  <div className="flex items-end">
-                    <button type="button" onClick={() => addExerciseToBlock(blockIndex)} className={`min-h-[48px] ${buttonAccentClass}`}>
-                      Add exercise
-                    </button>
-                  </div>
+                <div>
+                  <p className={`mb-2 block text-sm ${mutedTextClass}`}>Add exercise</p>
+                  <ExerciseSearchPicker
+                    isDarkTheme={isDarkTheme}
+                    excludeIds={block.exercises}
+                    placeholder="Search exercises to add…"
+                    onSelectExisting={(exercise) => addExerciseToBlock(blockIndex, exercise.id)}
+                    onCreateCustom={(name) => createCustomExerciseInBlock(blockIndex, name)}
+                  />
                 </div>
                 <div className="space-y-2">
                   {block.exercises.length ? (
                     block.exercises.map((exerciseId) => {
-                      const exercise = getExerciseById(exerciseId)
+                      const exercise = getExerciseById(exerciseId, builder.exerciseMap)
                       return (
                         <div key={exerciseId} className={`flex items-center justify-between gap-3 rounded-2xl border px-4 py-3 text-sm ${nestedCardClass}`}>
                           <span className="flex items-center gap-2">

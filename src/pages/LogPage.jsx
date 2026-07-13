@@ -6,8 +6,6 @@ import { getExerciseById } from '../utils/exerciseLookup'
 import { getThemeClasses } from '../utils/theme'
 import { ExerciseInfoButton } from '../components/ExerciseInfoButton'
 
-const timerSteps = [30, 60, 120, 180, 240]
-
 function getPreviousExerciseSummary(sessions, exerciseId, splitId) {
   const matching = sessions
     .slice()
@@ -28,20 +26,6 @@ function getPreviousExerciseSummary(sessions, exerciseId, splitId) {
   }
 }
 
-function formatTime(seconds) {
-  const mins = Math.floor(seconds / 60)
-  const secs = seconds % 60
-  return `${mins}:${secs.toString().padStart(2, '0')}`
-}
-
-function formatTimerLabel(seconds) {
-  if (seconds >= 60) {
-    const mins = seconds / 60
-    return `${mins % 1 === 0 ? mins : mins.toFixed(1)}m`
-  }
-  return `${seconds}s`
-}
-
 export function LogPage({ selectedSplit, sessions, setSessions, setSplits, isDarkTheme }) {
   const { blockId } = useParams()
   const navigate = useNavigate()
@@ -50,9 +34,7 @@ export function LogPage({ selectedSplit, sessions, setSessions, setSplits, isDar
     nestedCardClass,
     headingTextClass,
     mutedTextClass,
-    subtleTextClass,
     inputClass,
-    pillNeutralClass,
     buttonSecondaryClass,
     buttonAccentClass,
     buttonDangerClass
@@ -62,9 +44,6 @@ export function LogPage({ selectedSplit, sessions, setSessions, setSplits, isDar
   const block = blockIndex >= 0 ? selectedSplit.blocks[blockIndex] : null
 
   const [logEntries, setLogEntries] = useState(() => (block ? block.exercises.map((exerciseId) => ({ exerciseId, sets: [] })) : []))
-  const [timerSeconds, setTimerSeconds] = useState(0)
-  const [timerRunning, setTimerRunning] = useState(false)
-  const [selectedTimerSeconds, setSelectedTimerSeconds] = useState(60)
 
   useEffect(() => {
     if (!block || block.type === BLOCK_TYPE.REST) {
@@ -72,73 +51,12 @@ export function LogPage({ selectedSplit, sessions, setSessions, setSplits, isDar
       return
     }
     setLogEntries(block.exercises.map((exerciseId) => ({ exerciseId, sets: [] })))
-    setTimerSeconds(0)
-    setTimerRunning(false)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [blockId])
-
-  useEffect(() => {
-    if (!timerRunning || timerSeconds <= 0) return
-
-    const interval = setInterval(() => {
-      setTimerSeconds((prev) => {
-        if (prev <= 1) {
-          setTimerRunning(false)
-          if (typeof window !== 'undefined') {
-            try {
-              const audioContext = new (window.AudioContext || window.webkitAudioContext)()
-              const oscillator = audioContext.createOscillator()
-              const gainNode = audioContext.createGain()
-              oscillator.connect(gainNode)
-              gainNode.connect(audioContext.destination)
-              oscillator.frequency.value = 800
-              gainNode.gain.setValueAtTime(0.3, audioContext.currentTime)
-              gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5)
-              oscillator.start(audioContext.currentTime)
-              oscillator.stop(audioContext.currentTime + 0.5)
-            } catch {}
-          }
-          return 0
-        }
-        return prev - 1
-      })
-    }, 1000)
-
-    return () => clearInterval(interval)
-  }, [timerRunning, timerSeconds])
 
   if (!block || block.type === BLOCK_TYPE.REST) {
     return null
   }
-
-  const startTimer = (seconds = selectedTimerSeconds) => {
-    setTimerSeconds(seconds)
-    setTimerRunning(true)
-  }
-
-  const toggleTimer = () => {
-    if (timerSeconds === 0) {
-      startTimer(selectedTimerSeconds)
-      return
-    }
-    setTimerRunning(!timerRunning)
-  }
-
-  const resetTimer = () => {
-    setTimerSeconds(0)
-    setTimerRunning(false)
-  }
-
-  const handleTimerChange = (value) => {
-    const nextIndex = Number(value)
-    const nextValue = timerSteps[nextIndex]
-    setSelectedTimerSeconds(nextValue)
-    if (!timerRunning) {
-      setTimerSeconds(nextValue)
-    }
-  }
-
-  const timerStepIndex = timerSteps.findIndex((step) => step === selectedTimerSeconds)
 
   const getLastSessionSummary = (exerciseId) => getPreviousExerciseSummary(sessions, exerciseId, selectedSplit.id)
 
@@ -232,77 +150,6 @@ export function LogPage({ selectedSplit, sessions, setSessions, setSplits, isDar
           >
             Save session
           </button>
-        </div>
-      </div>
-
-      <div
-        className={`mb-6 overflow-hidden rounded-[28px] border p-6 shadow-[0_20px_60px_-20px_rgba(0,0,0,0.35)] ${
-          isDarkTheme ? 'border-slate-800 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950' : 'border-slate-200 bg-gradient-to-br from-white via-slate-50 to-white'
-        }`}
-      >
-        <div className="flex flex-col gap-6 xl:flex-row xl:items-center xl:justify-between">
-          <div className={`flex flex-1 items-center justify-between gap-4 rounded-[24px] border p-5 ${nestedCardClass}`}>
-            <div>
-              <p className={`text-[11px] font-semibold uppercase tracking-[0.32em] ${subtleTextClass}`}>Rest timer</p>
-              <div className={`mt-2 text-5xl font-semibold tracking-[0.12em] font-mono ${headingTextClass}`}>{formatTime(timerSeconds)}</div>
-              <p className={`mt-2 text-sm ${mutedTextClass}`}>
-                {timerRunning ? 'Counting down until your next set.' : 'Set a pause length and start when you need it.'}
-              </p>
-            </div>
-            <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/10 px-3 py-2 text-right">
-              <div className={`text-[10px] uppercase tracking-[0.28em] ${isDarkTheme ? 'text-emerald-300' : 'text-emerald-600'}`}>Ready</div>
-              <div className={`mt-1 text-sm font-medium ${isDarkTheme ? 'text-emerald-100' : 'text-emerald-700'}`}>{formatTimerLabel(selectedTimerSeconds)}</div>
-            </div>
-          </div>
-
-          <div className="w-full max-w-[320px]">
-            <div className={`rounded-[24px] border p-4 ${nestedCardClass}`}>
-              <div className={`mb-3 flex items-center justify-between text-sm ${mutedTextClass}`}>
-                <span>Set rest time</span>
-                <span className={`rounded-full px-2.5 py-1 text-[10px] uppercase tracking-[0.2em] ${pillNeutralClass}`}>
-                  {formatTimerLabel(selectedTimerSeconds)}
-                </span>
-              </div>
-              <input
-                type="range"
-                min="0"
-                max={timerSteps.length - 1}
-                step="1"
-                value={timerStepIndex >= 0 ? timerStepIndex : 1}
-                onChange={(event) => handleTimerChange(event.target.value)}
-                disabled={timerRunning}
-                className={`h-2 w-full cursor-pointer appearance-none rounded-full accent-emerald-400 ${isDarkTheme ? 'bg-slate-800/80' : 'bg-slate-200'}`}
-              />
-              <div className={`relative mt-3 h-6 px-1 text-[11px] ${subtleTextClass}`}>
-                {timerSteps.map((tick, index) => {
-                  const percent = (index / (timerSteps.length - 1)) * 100
-                  return (
-                    <div key={tick} className="absolute top-0 flex -translate-x-1/2 flex-col items-center gap-1" style={{ left: `${percent}%` }}>
-                      <div className={`h-2 w-px ${isDarkTheme ? 'bg-slate-600' : 'bg-slate-300'}`} />
-                      <span className="whitespace-nowrap">{tick >= 60 ? `${tick / 60}m` : `${tick}s`}</span>
-                    </div>
-                  )
-                })}
-              </div>
-            </div>
-            <div className="mt-3 flex gap-2">
-              <button
-                type="button"
-                onClick={toggleTimer}
-                className={`min-h-[48px] flex-1 rounded-2xl border px-4 py-2 text-sm font-medium transition ${
-                  timerRunning
-                    ? `border-amber-500 bg-amber-500/10 hover:bg-amber-500/15 ${isDarkTheme ? 'text-amber-200' : 'text-amber-700'}`
-                    : buttonSecondaryClass
-                }`}
-                disabled={timerRunning ? false : selectedTimerSeconds === 0}
-              >
-                {timerRunning ? 'Pause' : 'Start'}
-              </button>
-              <button type="button" onClick={resetTimer} className={`min-h-[48px] ${buttonSecondaryClass}`}>
-                Reset
-              </button>
-            </div>
-          </div>
         </div>
       </div>
 

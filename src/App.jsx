@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
-import { addCustomExerciseToBlock, removeBlockExercise, reorderBlockExercise, replaceBlockExercise } from './utils/splitExercises'
+import { addCustomExerciseToBlock, addExistingExerciseToBlock, removeBlockExercise, reorderBlockExercise, replaceBlockExercise } from './utils/splitExercises'
 import { createInitialAppState } from './utils/splitFactory'
 import { getThemeClasses } from './utils/theme'
 import { useAuth } from './hooks/useAuth'
@@ -98,6 +98,10 @@ function App() {
     setSplits((current) => current.map((split) => (split.id === selectedSplitId ? addCustomExerciseToBlock(split, blockIndex, trimmedName) : split)))
   }
 
+  const addExistingExerciseToSelectedBlock = (blockIndex, exerciseId) => {
+    setSplits((current) => current.map((split) => (split.id === selectedSplitId ? addExistingExerciseToBlock(split, blockIndex, exerciseId) : split)))
+  }
+
   if (isLoading) {
     return (
       <div className={`min-h-screen ${isDarkTheme ? 'bg-slate-950 text-slate-100' : 'bg-slate-50 text-slate-900'} flex items-center justify-center`}>
@@ -142,6 +146,7 @@ function App() {
                     moveBlockExerciseInSelectedSplit={moveBlockExerciseInSelectedSplit}
                     removeBlockExerciseFromSelectedSplit={removeBlockExerciseFromSelectedSplit}
                     addCustomExerciseToSelectedBlock={addCustomExerciseToSelectedBlock}
+                    addExistingExerciseToSelectedBlock={addExistingExerciseToSelectedBlock}
                   />
                 }
               />

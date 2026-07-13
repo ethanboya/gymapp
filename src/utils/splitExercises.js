@@ -37,6 +37,19 @@ export function addCustomExerciseToBlock(split, blockIndex, exerciseName, exerci
   }
 }
 
+export function addExistingExerciseToBlock(split, blockIndex, exerciseId) {
+  if (!split || blockIndex < 0 || !exerciseId) return split
+
+  return {
+    ...split,
+    blocks: split.blocks.map((block, index) =>
+      index === blockIndex
+        ? { ...block, exercises: block.exercises.includes(exerciseId) ? block.exercises : [...block.exercises, exerciseId] }
+        : block
+    )
+  }
+}
+
 export function replaceBlockExercise(split, blockIndex, exerciseIndex, exerciseId) {
   if (!split || blockIndex < 0 || exerciseIndex < 0) return split
 

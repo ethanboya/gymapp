@@ -5,6 +5,7 @@ import { getAvailableExercises } from '../utils/splitExercises'
 import { getExerciseById, groupExercisesByMuscle } from '../utils/exerciseLookup'
 import { getThemeClasses } from '../utils/theme'
 import { ExerciseInfoButton } from '../components/ExerciseInfoButton'
+import { ExerciseSearchPicker } from '../components/ExerciseSearchPicker'
 
 export function HomePage({
   splits,
@@ -15,7 +16,8 @@ export function HomePage({
   updateBlockExercise,
   moveBlockExerciseInSelectedSplit,
   removeBlockExerciseFromSelectedSplit,
-  addCustomExerciseToSelectedBlock
+  addCustomExerciseToSelectedBlock,
+  addExistingExerciseToSelectedBlock
 }) {
   const navigate = useNavigate()
   const {
@@ -36,7 +38,6 @@ export function HomePage({
   } = getThemeClasses(isDarkTheme)
 
   const [customizingBlockIndex, setCustomizingBlockIndex] = useState(null)
-  const [customExerciseName, setCustomExerciseName] = useState('')
   const [draggedExerciseIndex, setDraggedExerciseIndex] = useState(null)
   const [dropTargetIndex, setDropTargetIndex] = useState(null)
   const customizationPanelRef = useRef(null)
@@ -48,7 +49,6 @@ export function HomePage({
 
   useEffect(() => {
     setCustomizingBlockIndex(null)
-    setCustomExerciseName('')
     setDraggedExerciseIndex(null)
     setDropTargetIndex(null)
   }, [selectedSplitId])
@@ -96,20 +96,12 @@ export function HomePage({
 
   const openCustomization = (blockIndex) => {
     setCustomizingBlockIndex(blockIndex)
-    setCustomExerciseName('')
   }
 
   const closeCustomization = () => {
     setCustomizingBlockIndex(null)
-    setCustomExerciseName('')
     setDraggedExerciseIndex(null)
     setDropTargetIndex(null)
-  }
-
-  const handleAddCustomExercise = () => {
-    if (customizingBlockIndex === null) return
-    addCustomExerciseToSelectedBlock(customizingBlockIndex, customExerciseName)
-    setCustomExerciseName('')
   }
 
   const openLog = (block) => {
@@ -315,19 +307,17 @@ export function HomePage({
           </div>
 
           <div className={`mt-6 rounded-3xl border p-5 ${nestedCardClass}`}>
-            <label className={`block text-sm ${mutedTextClass}`}>
-              Add a custom exercise
-              <input
-                value={customExerciseName}
-                onChange={(event) => setCustomExerciseName(event.target.value)}
-                placeholder="e.g. Cable Crunch"
-                className={`mt-2 w-full rounded-2xl border px-4 py-2 outline-none transition ${inputClass}`}
-              />
-            </label>
-            <button type="button" onClick={handleAddCustomExercise} className={`mt-3 min-h-[48px] ${buttonAccentClass}`}>
-              Add custom exercise
-            </button>
-            <p className={`mt-2 text-sm ${mutedTextClass}`}>This adds a new exercise to the current block and makes it available for future workouts.</p>
+            <p className={`mb-2 text-sm ${mutedTextClass}`}>Add exercise</p>
+            <ExerciseSearchPicker
+              isDarkTheme={isDarkTheme}
+              excludeIds={customizingBlock.exercises}
+              placeholder="Search exercises to add…"
+              onSelectExisting={(exercise) => addExistingExerciseToSelectedBlock(customizingBlockIndex, exercise.id)}
+              onCreateCustom={(name) => addCustomExerciseToSelectedBlock(customizingBlockIndex, name)}
+            />
+            <p className={`mt-2 text-sm ${mutedTextClass}`}>
+              Pick a match to add it with its photo and description, or add your own if it's not in our list.
+            </p>
           </div>
         </section>
       )}

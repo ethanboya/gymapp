@@ -242,7 +242,7 @@ export const samplePresets = [
         id: 'legs',
         label: 'Legs',
         type: BLOCK_TYPE.WORKOUT,
-        exercises: ['squat', 'deadlift', 'leg-press', 'hamstring-curl']
+        exercises: ['leg-press', 'hamstring-curl']
       }),
       createBlock({
         id: 'rest',
@@ -251,7 +251,7 @@ export const samplePresets = [
       })
     ],
     currentIndex: 0,
-    exerciseMap: buildExerciseMap(['bench-press', 'dumbbell-shoulder-press', 'pec-fly', 'tricep-pushdown', 'lateral-raise', 'pull-up', 'barbell-row', 'bicep-curl', 'face-pull', 'squat', 'deadlift', 'leg-press', 'hamstring-curl'])
+    exerciseMap: buildExerciseMap(['bench-press', 'dumbbell-shoulder-press', 'pec-fly', 'tricep-pushdown', 'lateral-raise', 'pull-up', 'barbell-row', 'bicep-curl', 'face-pull', 'leg-press', 'hamstring-curl'])
   }),
   createSplit({
     id: 'upper-lower',
