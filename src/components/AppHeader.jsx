@@ -1,4 +1,4 @@
-export function AppHeader({ isDarkTheme, mutedTextClass, buttonAccentClass, session, isGuestMode, signOut, onLogin, onToggleTheme }) {
+export function AppHeader({ isDarkTheme, mutedTextClass, buttonAccentClass, buttonSecondaryClass, session, isGuestMode, signOut, onLogin, onToggleTheme, onOpenTutorial }) {
   return (
     <header className="mb-8 flex flex-col gap-4">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
@@ -10,6 +10,9 @@ export function AppHeader({ isDarkTheme, mutedTextClass, buttonAccentClass, sess
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-3 self-start">
+          <button type="button" onClick={onOpenTutorial} aria-label="Open tutorial" className={`min-h-[48px] ${buttonSecondaryClass}`}>
+            ❓ Help
+          </button>
           <button type="button" onClick={onToggleTheme} className={`min-h-[48px] ${buttonAccentClass}`}>
             {isDarkTheme ? '☀️ Light mode' : '🌙 Dark mode'}
           </button>

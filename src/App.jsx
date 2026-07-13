@@ -7,6 +7,7 @@ import { useAuth } from './hooks/useAuth'
 import { LoginScreen } from './components/LoginScreen'
 import { AppHeader } from './components/AppHeader'
 import { BottomNav } from './components/BottomNav'
+import { TutorialModal } from './components/TutorialModal'
 import { HomePage } from './pages/HomePage'
 import { LogPage } from './pages/LogPage'
 import { StatsPage } from './pages/StatsPage'
@@ -77,7 +78,28 @@ function App() {
 
   const selectedSplit = useMemo(() => splits.find((split) => split.id === selectedSplitId) || splits[0], [splits, selectedSplitId])
   const isDarkTheme = theme === 'dark'
-  const { mutedTextClass, buttonAccentClass } = getThemeClasses(isDarkTheme)
+  const { mutedTextClass, buttonAccentClass, buttonSecondaryClass } = getThemeClasses(isDarkTheme)
+
+  const [showTutorial, setShowTutorial] = useState(false)
+
+  useEffect(() => {
+    if (!hasHydrated || !isAuthenticated) return
+    try {
+      const seen = window.localStorage.getItem('gym-app-tutorial-seen-v1')
+      if (!seen) setShowTutorial(true)
+    } catch {
+      // ignore
+    }
+  }, [hasHydrated, isAuthenticated])
+
+  const closeTutorial = () => {
+    setShowTutorial(false)
+    try {
+      window.localStorage.setItem('gym-app-tutorial-seen-v1', 'true')
+    } catch {
+      // ignore
+    }
+  }
 
   const updateBlockExercise = (blockIndex, exerciseIndex, exerciseId) => {
     setSplits((current) => current.map((split) => (split.id === selectedSplitId ? replaceBlockExercise(split, blockIndex, exerciseIndex, exerciseId) : split)))
@@ -125,12 +147,15 @@ function App() {
             isDarkTheme={isDarkTheme}
             mutedTextClass={mutedTextClass}
             buttonAccentClass={buttonAccentClass}
+            buttonSecondaryClass={buttonSecondaryClass}
             session={session}
             isGuestMode={isGuestMode}
             signOut={signOut}
             onLogin={exitGuestMode}
             onToggleTheme={() => setTheme((current) => (current === 'dark' ? 'light' : 'dark'))}
+            onOpenTutorial={() => setShowTutorial(true)}
           />
+          <TutorialModal isOpen={showTutorial} onClose={closeTutorial} isDarkTheme={isDarkTheme} />
           <main>
             <Routes>
               <Route
