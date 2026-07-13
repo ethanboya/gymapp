@@ -37,12 +37,14 @@ export function ExerciseSearchPicker({ isDarkTheme, onSelectExisting, onCreateCu
   return (
     <div className="space-y-2">
       <div className="flex gap-2">
-        <input
-          value={query}
-          onChange={(event) => setQuery(event.target.value)}
-          placeholder={placeholder}
-          className={`w-full rounded-2xl border px-4 py-2 outline-none transition ${inputClass}`}
-        />
+        {!isBrowsing && (
+          <input
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder={placeholder}
+            className={`w-full rounded-2xl border px-4 py-2 outline-none transition ${inputClass}`}
+          />
+        )}
         <button
           type="button"
           onClick={() => setIsBrowsing((current) => !current)}
